@@ -12,9 +12,9 @@ import (
 )
 
 var pathToWalk string
+var dirPrefix string
 
 func walkDirectoryForCodenotify(ctx *cli.Context) error {
-	// todo handle pathToWalk
 	var cwd string
 	if pathToWalk != "" {
 		cwd = pathToWalk
@@ -50,7 +50,7 @@ func walkDirectoryForCodenotify(ctx *cli.Context) error {
 			if p.isBlank() {
 				continue
 			}
-			fmt.Println(p.line)
+			fmt.Println(filepath.Dir(path)[len(dirPrefix):] + "/" + p.line)
 		}
 
 		if err := scanner.Err(); err != nil {
@@ -66,12 +66,18 @@ func walkDirectoryForCodenotify(ctx *cli.Context) error {
 func main() {
 	app := &cli.App{
 		Name:  "codenotify -> codeowners",
-		Usage: "convert codenotify files to single codeowners file",
+		Usage: "convert codenotify files to single codeowners file.\nWARNING: this needs to be called from the root of a repo.",
 		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:        "dir-prefix",
+				Value:       "",
+				Usage:       "directory prefix to exclude from regenerated owner path",
+				Destination: &dirPrefix,
+			},
 			&cli.StringFlag{
 				Name:        "path",
 				Value:       "",
-				Usage:       "path to parse files for",
+				Usage:       "directory path to walk",
 				Destination: &pathToWalk,
 			},
 		},
