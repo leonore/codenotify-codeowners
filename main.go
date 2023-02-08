@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -25,6 +24,13 @@ func walkDirectoryForCodenotify(ctx *cli.Context) error {
 		}
 		cwd = tmpCwd
 	}
+
+	ownersFile, err := os.Create("CODEOWNERS")
+	if err != nil {
+		return err
+	}
+	defer ownersFile.Close()
+	w := bufio.NewWriter(ownersFile)
 
 	if err := filepath.WalkDir(cwd, func(path string, d os.DirEntry, err error) error {
 		// if file is codenotify
@@ -50,9 +56,12 @@ func walkDirectoryForCodenotify(ctx *cli.Context) error {
 			if p.isBlank() {
 				continue
 			}
-			fmt.Println(filepath.Dir(path)[len(dirPrefix):] + "/" + p.line)
+			reformatted := filepath.Dir(path)[len(dirPrefix):] + "/" + p.line + "\n"
+			if _, err := w.WriteString(reformatted); err != nil {
+				return err
+			}
 		}
-
+		w.WriteString("\n")
 		if err := scanner.Err(); err != nil {
 			return err
 		}
@@ -60,6 +69,7 @@ func walkDirectoryForCodenotify(ctx *cli.Context) error {
 	}); err != nil {
 		return err
 	}
+	w.Flush()
 	return nil
 }
 
