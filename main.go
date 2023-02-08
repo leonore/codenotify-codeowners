@@ -8,14 +8,16 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+func walkDirectoryForCodenotify(ctx *cli.Context) error {
+	fmt.Println("works")
+	return nil
+}
+
 func main() {
 	app := &cli.App{
-		Name:  "boom",
-		Usage: "make an explosive entrance",
-		Action: func(*cli.Context) error {
-			fmt.Println("boom! I say!")
-			return nil
-		},
+		Name:   "codenotify -> codeowners",
+		Usage:  "convert codenotify files to single codeowners file",
+		Action: walkDirectoryForCodenotify,
 	}
 
 	if err := app.Run(os.Args); err != nil {
