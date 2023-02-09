@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"log"
 	"os"
 	"path/filepath"
@@ -14,15 +15,12 @@ var pathToWalk string
 var dirPrefix string
 
 func walkDirectoryForCodenotify(ctx *cli.Context) error {
-	var cwd string
-	if pathToWalk != "" {
-		cwd = pathToWalk
-	} else {
-		tmpCwd, err := os.Getwd()
-		if err != nil {
-			return err
-		}
-		cwd = tmpCwd
+	if pathToWalk == "" {
+		return errors.New("path is required")
+	}
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
 	}
 
 	ownersFile, err := os.Create("CODEOWNERS")
@@ -33,9 +31,6 @@ func walkDirectoryForCodenotify(ctx *cli.Context) error {
 	w := bufio.NewWriter(ownersFile)
 
 	if err := filepath.WalkDir(cwd, func(path string, d os.DirEntry, err error) error {
-		// if file is codenotify
-		// go through each line in file
-		// skip comments and empty
 		if err != nil {
 			return err
 		}
@@ -56,7 +51,7 @@ func walkDirectoryForCodenotify(ctx *cli.Context) error {
 			if p.isBlank() {
 				continue
 			}
-			reformatted := filepath.Dir(path)[len(dirPrefix):] + "/" + p.line + "\n"
+			reformatted := filepath.Dir(path)[len(pathToWalk):] + "/" + p.line + "\n"
 			if _, err := w.WriteString(reformatted); err != nil {
 				return err
 			}
@@ -76,19 +71,14 @@ func walkDirectoryForCodenotify(ctx *cli.Context) error {
 func main() {
 	app := &cli.App{
 		Name:  "codenotify -> codeowners",
-		Usage: "convert codenotify files to single codeowners file.\nWARNING: this needs to be called from the root of a repo.",
+		Usage: "convert codenotify files to single codeowners file.",
 		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:        "dir-prefix",
-				Value:       "",
-				Usage:       "directory prefix to exclude from regenerated owner path",
-				Destination: &dirPrefix,
-			},
 			&cli.StringFlag{
 				Name:        "path",
 				Value:       "",
 				Usage:       "directory path to walk",
 				Destination: &pathToWalk,
+				Required:    true, // required because we need to remove it as prefix
 			},
 		},
 		Action: walkDirectoryForCodenotify,
