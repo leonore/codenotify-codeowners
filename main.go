@@ -12,15 +12,10 @@ import (
 )
 
 var pathToWalk string
-var dirPrefix string
 
 func walkDirectoryForCodenotify(ctx *cli.Context) error {
 	if pathToWalk == "" {
 		return errors.New("path is required")
-	}
-	cwd, err := os.Getwd()
-	if err != nil {
-		return err
 	}
 
 	ownersFile, err := os.Create("CODEOWNERS")
@@ -30,7 +25,7 @@ func walkDirectoryForCodenotify(ctx *cli.Context) error {
 	defer ownersFile.Close()
 	w := bufio.NewWriter(ownersFile)
 
-	if err := filepath.WalkDir(cwd, func(path string, d os.DirEntry, err error) error {
+	if err := filepath.WalkDir(pathToWalk, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
