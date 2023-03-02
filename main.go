@@ -46,7 +46,7 @@ func walkDirectoryForCodenotify(ctx *cli.Context) error {
 			if p.isBlank() {
 				continue
 			}
-			reformatted := filepath.Dir(path)[len(pathToWalk):] + "/" + p.line + "\n"
+			reformatted := "/" + filepath.Dir(path)[len(pathToWalk):] + "/" + p.line + "\n"
 			if _, err := w.WriteString(reformatted); err != nil {
 				return err
 			}
